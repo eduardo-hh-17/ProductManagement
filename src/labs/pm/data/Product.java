@@ -24,7 +24,7 @@ import java.util.Objects;
 * @author oracle
 */
 
-public sealed abstract class Product permits Food, Drink {
+public sealed abstract class Product implements Rateable <Product> permits Food, Drink {
 
     private int id;
     private String name;
@@ -57,7 +57,7 @@ public sealed abstract class Product permits Food, Drink {
         this(id, name, price, Rating.NOT_RATED);
     }
 
-    public  abstract Product applyRating (Rating newRating) ;
+    //public  abstract Product applyRating (Rating newRating) ;
 
     /**
      * Assumes tha the best before date is today
