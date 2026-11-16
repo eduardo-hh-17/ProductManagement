@@ -9,6 +9,7 @@
 package labs.pm.data;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -58,14 +59,36 @@ public class ProductManager {
 
     public void printProductReport () {
         StringBuilder txt = new StringBuilder();
-        txt.append(product);
-        txt.append('\n');
+        String type = switch (product){
+            case Food food -> resources.getString("food");
+            case Drink drink -> resources.getString("drink");
+        };
+
+        //reamining method logic
+        txt.append(MessageFormat.format(resources.getString("product"),
+            product.getName(),
+            moneyFormat.format(product.getPrice()),
+            product.getRating().getStars(),
+            dateFormart.format(product.getBestBefore()),
+                    type));
+
         if (review != null){
-            txt.append(review);
+            txt.append(MessageFormat.format(resources.getString("review"),
+                    review.rating().getStars(),
+                    review.comments()));
         }else{
-            txt.append("Not reviewed");
+            txt.append(resources.getString("no.reviews"));
         }
-        txt.append('\n');
+
+
+//        txt.append(product);
+//        txt.append('\n');
+//        if (review != null){
+//            txt.append(review);
+//        }else{
+//            txt.append("Not reviewed");
+//        }
+//        txt.append('\n');
         System.out.println(txt);
 
 
