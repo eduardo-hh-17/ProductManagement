@@ -22,24 +22,52 @@ import java.util.*;
 public class ProductManager {
     private Product product;
     private Review review;
-    private Locale locale;
-    private ResourceBundle resources;
-    private DateTimeFormatter dateFormart;
-    private NumberFormat moneyFormat;
+
     private Review[] reviews = new Review[5];
-
-
     private Map<Product, List<Review>> products = new HashMap<>();
+
+
+    /*NUEVAS VARIABLES Y METODOS TEMA 10-1*/
+    private static Map<String, ResourceFormatter> formatters =
+            Map.of("en-GB", new ResourceFormatter(Locale.UK),
+                    "en-US", new ResourceFormatter(Locale.US),
+                    "ru-RU", new ResourceFormatter(Locale.of("ru","RU")),
+                    "fr-FR", new ResourceFormatter(Locale.FRANCE),
+                    "zh-CN", new ResourceFormatter(Locale.CHINA));
+
+
+
+    private ResourceFormatter formatter;
+
+    public void changeLocale (String languageTag){
+        formatter = formatters.getOrDefault(languageTag,
+                formatters.get("en-GB"));
+    }
+
+    public static Set <String> getSupportedLocales (){
+        return formatters.keySet();
+    }
+
+    public ProductManager (String languajeTag){
+        changeLocale(languajeTag);
+    }
+
+
+
+
+
+
 
 
 
     public ProductManager (Locale locale){
-        this.locale= locale;
-        resources = ResourceBundle.getBundle("labs.pm.data.resources", locale);
-        dateFormart = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-                .localizedBy(locale);
-
-        moneyFormat = NumberFormat.getCurrencyInstance(locale);
+//        this.locale= locale;
+//        resources = ResourceBundle.getBundle("labs.pm.data.resources", locale);
+//        dateFormart = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+//                .localizedBy(locale);
+//
+//        moneyFormat = NumberFormat.getCurrencyInstance(locale);
+        this(locale.toLanguageTag());
     }
 
     public Product createProduct (int id, String name, BigDecimal price,
@@ -88,28 +116,32 @@ public class ProductManager {
 
     public void printProductReport (Product product) {
         List <Review> reviews = products.get(product);
+        Collections.sort(reviews);
         StringBuilder txt = new StringBuilder();
-        String type = switch (product){
-            case Food food -> resources.getString("food");
-            case Drink drink -> resources.getString("drink");
-        };
+//        String type = switch (product){
+//            case Food food -> resources.getString("food");
+//            case Drink drink -> resources.getString("drink");
+//        };
 
         //reamining method logic
-        txt.append(MessageFormat.format(resources.getString("product"),
-            product.getName(),
-            moneyFormat.format(product.getPrice()),
-            product.getRating().getStars(),
-            dateFormart.format(product.getBestBefore()),
-            type));
+//        txt.append(MessageFormat.format(resources.getString("product"),
+//            product.getName(),
+//            moneyFormat.format(product.getPrice()),
+//            product.getRating().getStars(),
+//            dateFormart.format(product.getBestBefore()),
+//            type));
+        txt.append(formatter.formatProduct(product));
         txt.append('\n');
         for (Review review: reviews){
-            txt.append(MessageFormat.format(resources.getString("review"),
-                    review.rating().getStars(),
-                    review.comments()));
+//            txt.append(MessageFormat.format(resources.getString("review"),
+//                    review.rating().getStars(),
+//                    review.comments()));
+            txt.append(formatter.formatProduct(product));
             txt.append('\n');
         }
         if(reviews.isEmpty()){
-            txt.append(resources.getString("no.reviews"));
+//            txt.append(resources.getString("no.reviews"));
+            txt.append(formatter.formatProduct(product));
             txt.append('\n');
 
         }
@@ -149,14 +181,17 @@ public class ProductManager {
         printProductReport(findProduct(id));
     }
 
+
+
+
     //Practica 10-1 clase anidada estatica, solo la usa ProductManager (private)
-    private static class ResourceFormater {
+    private static class ResourceFormatter {
         private Locale locale;
         private ResourceBundle resources;
         private DateTimeFormatter dateFormart;
         private NumberFormat moneyFormat;
 
-        private ResourceFormater (Locale locale){
+        private ResourceFormatter (Locale locale){
             this.locale = locale;
             resources = ResourceBundle.getBundle("labs.pm.data.resources", locale);
             dateFormart = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)

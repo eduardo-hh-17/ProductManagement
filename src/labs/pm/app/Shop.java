@@ -22,7 +22,7 @@ public class Shop {
 
     public static void main(String[] args) {
 
-        ProductManager pm = new ProductManager(Locale.UK);
+        ProductManager pm = new ProductManager("zh-CN");
         Product p1 = pm.createProduct(101, "Tea", BigDecimal.valueOf(1.99), Rating.NOT_RATED);
 //        System.out.println(p1);
 //        Product p2 = pm.createProduct(102, "Coffe", BigDecimal.valueOf(1.99), Rating.FOUR_STAR);
