@@ -141,5 +141,15 @@ public class ProductManager {
         return result;
     }
 
+    public Product reviewProduct (int id, Rating rating, String comments){
+        return reviewProduct(findProduct(id),rating,comments);
+    }
+
+    public void printProductReport (int id) {
+        printProductReport(findProduct(id));
+    }
+
+
+
 
 }
