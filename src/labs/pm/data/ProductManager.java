@@ -149,6 +149,47 @@ public class ProductManager {
         printProductReport(findProduct(id));
     }
 
+    //Practica 10-1 clase anidada estatica, solo la usa ProductManager (private)
+    private static class ResourceFormater {
+        private Locale locale;
+        private ResourceBundle resources;
+        private DateTimeFormatter dateFormart;
+        private NumberFormat moneyFormat;
+
+        private ResourceFormater (Locale locale){
+            this.locale = locale;
+            resources = ResourceBundle.getBundle("labs.pm.data.resources", locale);
+            dateFormart = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+                    .localizedBy(locale);
+            moneyFormat = NumberFormat.getCurrencyInstance(locale);
+        }
+
+        private String formatProduct (Product product){
+            //switch exhaustivo: Product es sealed y solo permite Drink y Food
+            String type = switch (product) {
+                case Food food -> resources.getString("food");
+                case Drink drink -> resources.getString("drink");
+            };
+            return MessageFormat.format(resources.getString("product"),
+                            product.getName(),
+                            moneyFormat.format(product.getPrice()),
+                            product.getRating().getStars(),
+                            dateFormart.format(product.getBestBefore()),
+                            type);
+        }
+
+        private String formatReview (Review review){
+            return MessageFormat.format(resources.getString("review"),
+            review.rating().getStars(),
+            review.comments());
+        }
+        private String getText(String key){
+            return resources.getString(key);
+        }
+
+
+
+    }
 
 
 
