@@ -97,13 +97,22 @@ public class Shop {
 //                        pr1.getRating().ordinal() -
 //                        pr2.getRating().ordinal());
 
+//        pm.printProducts((pr1,pr2)->
+//                        pr2.getPrice().compareTo(pr1.getPrice()));
+
+//        pm.printProducts(p -> p.getPrice().floatValue() < 2,
+//                (pr1,pr2) -> pr2.getRating().ordinal()-pr1.getRating().ordinal());
+
+
             Comparator<Product> priceSorter = (pr1, pr2)->
                     pr2.getPrice().compareTo(pr1.getPrice());
             Comparator<Product> ratingSorter = (pr1,pr2)->
                     pr2.getRating().ordinal() -
                             pr1.getRating().ordinal();
-            pm.printProducts(priceSorter);
-            pm.printProducts(ratingSorter.thenComparing(priceSorter).reversed());
+            pm.printProducts(p -> p.getPrice().floatValue() <3,
+                    priceSorter);
+            pm.printProducts(p -> p.getPrice().floatValue() <4,
+                    ratingSorter.thenComparing(priceSorter).reversed());
 
     }
 }
