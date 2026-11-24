@@ -11,11 +11,14 @@ package labs.pm.data;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +31,11 @@ public class ProductManager {
     private Review review;
     private Review[] reviews = new Review[5];
     private Map<Product, List<Review>> products = new HashMap<>();
+    private static final Logger logger = Logger.getLogger(ProductManager.class.getName());
+    private ResourceBundle config = ResourceBundle.getBundle("labs.pm.data.config");
+    private MessageFormat reviewFormat = new MessageFormat(config.getString("review.data.format"));
+    private MessageFormat productFormat = new MessageFormat(config.getString("product.data.format"));
+
 
 
 
@@ -92,6 +100,17 @@ public class ProductManager {
         System.out.println(txt);
     }
 
+    public void parseReview (String text) throws ProductManagerException {
+        try {
+            Object [] values = reviewFormat.parse(text);
+            reviewProduct(Integer.parseInt((String) values [0]),
+            Rateable.convert(Integer.parseInt((String)values[1])),
+                                              (String)values[2]);
+        } catch (ParseException e) {
+            logger.log(Level.WARNING, "Error parsing review "+text, e);
+            throw new ProductManagerException("Unable to parse review", e);
+        }
+    }
 
 
 
@@ -137,11 +156,16 @@ public class ProductManager {
                                 .orElse(0))));
 
         products.putIfAbsent(product, reviews);
-        return this.product;
+        return product;
     }
 
     public Product reviewProduct (int id, Rating rating, String comments){
-        return reviewProduct(findProduct(id),rating,comments);
+        try {
+            return reviewProduct(findProduct(id),rating,comments);
+        } catch (ProductManagerException e) {
+            logger.log(Level.INFO, e.getMessage());
+            return null;
+        }
     }
 
 
@@ -183,12 +207,30 @@ public class ProductManager {
 
 
     public void printProductReport (int id) {
-        printProductReport(findProduct(id));
+        try {
+            printProductReport(findProduct(id));
+        } catch (ProductManagerException e) {
+            logger.log(Level.INFO, e.getMessage());
+        }
     }
 
 
+    public Map <String, String> getDiscount (){
+        return products.keySet()
+                .stream()
+                .collect(
+                        Collectors.groupingBy(product ->
+                                product.getRating().getStars(),
+                        Collectors.collectingAndThen(
+                                Collectors.summingDouble(
+                                        product -> product.getDiscount().doubleValue()
+                                ),
+                                discount -> formatter.moneyFormat.format(discount)
+                        )
+                ));
+    }
 
-    public Product findProduct (int id){
+    public Product findProduct (int id) throws ProductManagerException {
 //        Product result = null;
 //        for (Product product : products.keySet()){
 //            if(product.getId() == id){
@@ -202,7 +244,8 @@ public class ProductManager {
                   .stream()
                   .filter(p -> p.getId() == id)
                   .findFirst()
-                  .orElseGet(() -> null);
+                  .orElseThrow(() ->
+                          new ProductManagerException( "Product whit id "+ id + "not found"));
 
     }
 
