@@ -27,13 +27,14 @@ public class Shop {
 
         try {
             ProductManager pm = new ProductManager("es-ES");
+            System.setProperty("java.locale.providers", "HOST,CLDR");
 
-            Product p1 = pm.createProduct(101, "Tea", BigDecimal.valueOf(1.99), Rating.NOT_RATED);
+//            Product p1 = pm.createProduct(101, "Tea", BigDecimal.valueOf(1.99), Rating.NOT_RATED);
 
-
+            pm.parseProduct("F,101,tea,1.99,0,2021-09-21");
             pm.printProductReport(101);
-           // pm.parseReview("1014,4,Nice hot cup of tea");
-            pm.parseReview("Despues de esto nos vamos para casa");
+            pm.parseReview("101,4,Nice hot cup of tea");
+//            pm.parseReview("Despues de esto nos vamos para casa");
 //        p1 = pm.reviewProduct(101, Rating.FOUR_STAR, "Nice hot cup of tea");
 //        p1 = pm.reviewProduct(p1, Rating.TWO_STAR, "Rather weak tea");
 //        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Fine tea");
