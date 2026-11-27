@@ -31,26 +31,27 @@ public class Shop {
 
 //            Product p1 = pm.createProduct(101, "Tea", BigDecimal.valueOf(1.99), Rating.NOT_RATED);
 
-            pm.parseProduct("F,101,tea,1.99,0,2021-09-21");
+            pm.parseProduct("D,101,tea,1.99,0,27/11/26");
             pm.printProductReport(101);
             pm.parseReview("101,4,Nice hot cup of tea");
 //            pm.parseReview("Despues de esto nos vamos para casa");
-//        p1 = pm.reviewProduct(101, Rating.FOUR_STAR, "Nice hot cup of tea");
-//        p1 = pm.reviewProduct(p1, Rating.TWO_STAR, "Rather weak tea");
-//        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Fine tea");
-//        p1 = pm.reviewProduct(p1, Rating.FOUR_STAR, "Good tea");
-//        p1 = pm.reviewProduct(p1, Rating.FIVE_STAR, "Perfect tea");
-//        p1 = pm.reviewProduct(p1, Rating.THREE_STAR, "Just add some lemon");
+
+            pm.parseReview("101,4,Nice hot cup of tea");
+            pm.parseReview("101,1,Meh");
+            pm.parseReview("101,1,No esta tan bueno");
+            pm.parseReview("101,5,Is the best hot cup of tea i drink in all my life");
+            pm.parseReview("101,3,Not bad");
+            pm.parseReview("101,4,Really good");
             pm.printProductReport(101);
 
 
-//        Product p2 = pm.createProduct(102, "Coffee",
-//                BigDecimal.valueOf(1.99), Rating.NOT_RATED);
-//        p2 = pm.reviewProduct(102, Rating.THREE_STAR, "Coffee was ok");
-//        p2 = pm.reviewProduct(102, Rating.ONE_STAR, "Where is the milk?!");
-//        p2 = pm.reviewProduct(102, Rating.FIVE_STAR,
-//                "It's perfect with ten spoons of sugar!");
-//        pm.printProductReport(102);
+        Product p2 = pm.createProduct(102, "Coffee",
+                BigDecimal.valueOf(1.99), Rating.NOT_RATED);
+            pm.parseProduct("D,102,Coffee,1.99,0,25/11/26");
+            pm.parseReview("102,3,Coffee was ok");
+            pm.parseReview("102,1,Where is the milk?!");
+            pm.parseReview("102,5,It's perfect with ten spoons of sugar!");
+        pm.printProductReport(102);
 //
 //
 //

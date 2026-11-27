@@ -11,7 +11,7 @@ package labs.pm.data;
 /**
  * @author manana
  **/
-public class ProductManagerException extends Exception {
+public class ProductManagerException extends RuntimeException {
 
     public ProductManagerException() {
         super();

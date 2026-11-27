@@ -8,7 +8,15 @@
 
 package labs.pm.data;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -52,6 +60,17 @@ public class ProductManager {
 
 
     private ResourceFormatter formatter;
+
+
+    //=======Cargamos la rutas donde vamos a guardar los archivos========
+    private Path reportsFolder =
+                        Path.of(config.getString("reports.folder"));
+
+    private Path dataFolder =
+            Path.of(config.getString("data.folder"));
+
+    private Path tempFolder =
+            Path.of(config.getString("temp.folder"));
 
 
 
@@ -101,19 +120,47 @@ public class ProductManager {
         System.out.println(txt);
     }
 
-    public void parseReview (String text) throws ProductManagerException {
+    //TODO: Pagina 288. Punto 5
+    private List <Review> loadReview (Product product){
+        List <Review> reviews = null;
+        Path file =
+                dataFolder.resolve(
+                        MessageFormat.format(
+                        config.getString("reviews.data.file"), product.getId()));
+
+        if (Files.notExists(file)){
+            reviews = new ArrayList<>();
+        }
+        else{
+            try {
+                reviews = Files.lines(file, Charset.forName("UTF-8"))
+                        .map(text -> parseReview(text))
+                        .filter(review -> review != null)
+                        .collect(Collectors.toList());
+            } catch (IOException e) {
+                logger.log(Level.WARNING,
+                        "Error loading reviews "+e.getMessage());
+            }
+        }
+        return reviews;
+    }
+
+    public Review parseReview (String text) throws ProductManagerException {
+        Review review = null;
         try {
             Object [] values = reviewFormat.parse(text);
-            reviewProduct(Integer.parseInt((String) values [0]),
-            Rateable.convert(Integer.parseInt((String)values[1])),
-                                              (String)values[2]);
+           review = new Review (
+            Rateable.convert(Integer.parseInt((String)values[0])),
+                                              (String)values[1]);
         } catch (ParseException  | NumberFormatException e) {
             logger.log(Level.WARNING, "Error parsing review "+text, e);
             throw new ProductManagerException("Unable to parse review", e);
         }
+       return review;
     }
 
-    public void parseProduct (String text){
+    public Product parseProduct (String text){
+        Product product = null;
         try {
             Object [] values = productFormat.parse(text);
             int id = Integer.parseInt((String)values[1]);
@@ -122,12 +169,12 @@ public class ProductManager {
             Rating rating = Rateable.convert(Integer.parseInt((String) values[4]));
             switch ((String) values[0]){
                 case "D":
-                    createProduct(id,name,price,rating);
+                    product = new Drink (id,name,price,rating);
                     break;
 
                 case "F":
                     LocalDate bestBefore = LocalDate.parse((String)values[5],formatter.dateFormart);
-                    createProduct(id,name,price,rating,bestBefore);
+                    product = new Food (id,name,price,rating,bestBefore);
                     break;
 
 
@@ -136,6 +183,8 @@ public class ProductManager {
         } catch (ParseException | NumberFormatException | DateTimeParseException e) {
             logger.log (Level.WARNING, "Error parsing product "+text+" "+e.getMessage());
         }
+
+        return product;
     }
 
 
@@ -197,38 +246,39 @@ public class ProductManager {
 
 
 
-    public void printProductReport (Product product) {
+    public void printProductReport (Product product) throws IOException {
         List <Review> reviews = products.get(product);
         Collections.sort(reviews);
-        StringBuilder txt = new StringBuilder();
+//        StringBuilder txt = new StringBuilder();
+        Path productFile =
+                reportsFolder.resolve(
+                        MessageFormat.format(
+                                config.getString("reports.file"), product.getId()));
 
-        //reamining method logic
-        txt.append(formatter.formatProduct(product));
-        txt.append('\n');
-//        for (Review review: reviews){
-//            txt.append(formatter.formatReview(review));
-//            txt.append('\n');
-//        }
-//        if(reviews.isEmpty()){
-//            txt.append(formatter.getText("no.reviews"));
-//            txt.append('\n');
-//
-//        }
-        if (reviews.isEmpty()){
-            txt.append(formatter.getText("no.reviews")+'\n');
-        }else{
-            txt.append(reviews.stream()
-                    .map(r ->formatter.formatReview(r)+'\n')
-                    .collect(Collectors.joining()));
+        try (PrintWriter out = new PrintWriter(
+                new OutputStreamWriter(
+                        Files.newOutputStream(productFile,
+                                StandardOpenOption.CREATE),"UTF-8"))) {
 
-            reviews.stream()
-                    .forEach(r -> txt.append(formatter.formatReview(r)+'\n'));
+
+            //reamining method logic
+            out.append(formatter.formatProduct(product)
+                                +System.lineSeparator());
+
+            if (reviews.isEmpty()) {
+                out.append(formatter.getText("no.reviews")
+                        +System.lineSeparator());
+            } else {
+                out.append(reviews.stream()
+                        .map(r -> formatter.formatReview(r)
+                                +System.lineSeparator())
+                        .collect(Collectors.joining()));
+
+            }
+
+            System.out.println(out);
+
         }
-
-
-        txt.append('\n');
-        System.out.println(txt);
-
 
     }
 
@@ -238,6 +288,9 @@ public class ProductManager {
             printProductReport(findProduct(id));
         } catch (ProductManagerException e) {
             logger.log(Level.INFO, e.getMessage());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE,
+                    "Error printing product report "+e.getMessage(), e);
         }
     }
 
@@ -287,6 +340,7 @@ public class ProductManager {
         private DateTimeFormatter dateFormart;
         private NumberFormat moneyFormat;
 
+        // La lógica que habia del Constructor de ProductManager se traslada a la clase anidada
         private ResourceFormatter (Locale locale){
             this.locale = locale;
             resources = ResourceBundle.getBundle("labs.pm.data.resources", locale);
